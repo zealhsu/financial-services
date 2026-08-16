@@ -1,0 +1,6 @@
+pytrends==4.9.2
+praw==7.7.1
+supabase==2.4.0
+feedparser==6.0.11
+anthropic==0.39.0
+requests==2.32.3

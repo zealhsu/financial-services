@@ -24,6 +24,8 @@ from datetime import datetime, timezone
 import requests
 from supabase import create_client, Client
 
+from validate_tickers import annotate
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -61,6 +63,24 @@ def get_analyzed_signals(sb: Client, n: int = TOP_N) -> list[dict]:
 
 
 # ─────────────────────────────────────────
+# Ticker 驗證（防幻覺）
+# ─────────────────────────────────────────
+def mark_unverified(tickers: list[str]) -> list[str]:
+    """對照 SEC 註冊清單標注查不到的 ticker。
+
+    驗證失敗（SEC 連不上且無快取）時原樣回傳——寧可少一個標記，
+    也不要因為驗證器掛掉就整份 digest 推不出去。
+    """
+    if not tickers:
+        return tickers
+    try:
+        return annotate(tickers)
+    except Exception as e:
+        log.warning(f"ticker 驗證跳過：{e}")
+        return tickers
+
+
+# ─────────────────────────────────────────
 # 組裝 Telegram 訊息（HTML 格式）
 # ─────────────────────────────────────────
 def build_message(signals: list[dict]) -> str:
@@ -85,7 +105,10 @@ def build_message(signals: list[dict]) -> str:
         hits     = analysis.get("watchlist_hits", [])
 
         # 潛在標的（優先顯示供應鏈受益者，那才是資訊差價值）
+        # 這些 ticker 是 Claude 生成的，可能是幻覺。對照 SEC 註冊清單，
+        # 查不到的標 ⚠️——不刪除（ETF 和台股本來就不在那份清單裡）。
         tickers = sig.get("potential_tickers", []) or []
+        tickers = mark_unverified(tickers)
         ticker_str = "、".join(tickers[:5]) if tickers else "（無明確標的）"
 
         block = [f"\n<b>{i}. {kw}</b>"]
@@ -102,6 +125,7 @@ def build_message(signals: list[dict]) -> str:
         lines.append("\n".join(block))
 
     lines.append(f"\n\n<i>共 {len(signals)} 個訊號。這是研究參考，不是進場指令。</i>")
+    lines.append("<i>⚠️ = 不在 SEC 註冊清單（可能是幻覺，也可能是 ETF／台股／新上市）。</i>")
     return "\n".join(lines)
 
 

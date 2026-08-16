@@ -3,20 +3,24 @@
 Discovery half of the investing setup: watches trend and social data for topics
 moving before the market has priced them, and pushes a short daily digest.
 
-Rescued here from a chat session, where it was the only copy. **Two scripts are
-still missing** and the pipeline cannot run without them:
+Rescued here from a chat session, where it was the only copy. **All nine files
+are now present** and the three Python scripts compile clean.
 
-| File | Status |
+| File | Purpose |
 |---|---|
-| `.github/workflows/collect.yml` | present |
-| `scripts/send_digest.py` | present |
-| `scripts/collect_trends.py` | **missing** - Google Trends + Reddit + RSS, computes velocity and info_gap_score |
-| `scripts/generate_analysis.py` | **missing** - Claude API pass over the top signals |
-| `requirements.txt` | **missing** - referenced by the workflow |
-| `docs/investment-strategy.md` | present |
+| `scripts/collect_trends.py` | Google Trends + Reddit + Taiwanese RSS; computes velocity and info_gap_score |
+| `scripts/generate_analysis.py` | Claude API pass over the top 5 signals; returns structured JSON |
+| `scripts/send_digest.py` | Telegram push, top 5, once a day |
+| `scripts/schema.sql` | Supabase tables + 30 calibration keywords |
+| `scripts/validate_tickers.py` | SEC registrant check, copied unchanged from `theses/data/` |
+| `requirements.txt` | Pinned deps |
+| `.github/workflows/collect.yml` | Daily schedule, three steps in order |
+| `docs/investment-strategy.md` | The strategy this implements |
+| `docs/upstream-context.md` | The engine's own CLAUDE.md — design rationale, kept verbatim |
 
-Recover the two scripts from the chat session that produced them before that
-session ages out. Until then the workflow will fail at its first step.
+The workflow under `signal-engine/.github/` is inert here; only workflows at the
+repository root run. It ships with the engine for when it is deployed to its own
+repo.
 
 ## How it fits with the rest of the repo
 
@@ -38,33 +42,98 @@ and demand inflection. The engine covers the first two. **Demand inflection is
 what `theses/data/leading_indicators.py` measures** - inventory days, purchase
 obligations, customer concentration, hyperscaler capex.
 
-## Wire in ticker validation
+## Ticker validation - wired in
 
-`send_digest.py` currently pushes `potential_tickers` from the model straight to
-a phone with nothing checking them. See `theses/data/README.md` - the validator
-is standard-library only and copies in unchanged:
+`send_digest.py` used to push `potential_tickers` from the model straight to a
+phone with nothing checking them. It now runs them through
+`validate_tickers.annotate()` first: symbols absent from SEC's registrant list
+are marked `⚠️` rather than dropped, because an ETF or a Taiwan-listed name is
+legitimately absent. If SEC is unreachable and no cache exists, the digest sends
+unmarked rather than failing - a broken validator must not silence the engine.
 
-```python
-from validate_tickers import annotate
-tickers = annotate(sig.get("potential_tickers", []) or [])
-```
+## Design decisions worth not breaking
+
+Taken from `docs/upstream-context.md`, because each looks like a bug until you
+know why:
+
+- **Google Trends scores are window-relative.** A score of 60 today and 60
+  tomorrow are not the same quantity; each query renormalises to its own window
+  maximum. So GT is deliberately *not* written to `trend_snapshots` - velocity is
+  computed inside a single 90-day query. Only absolute sources (Reddit post
+  counts, RSS hits) get snapshotted.
+- **Velocity uses a mutually exclusive baseline**: last 7 days versus days -37 to
+  -8. Comparing 7 days against a 30-day window that contains those same 7 days
+  dilutes the signal by roughly 23%.
+- **60s + jitter between Google Trends calls.** GitHub Actions runs on datacenter
+  IPs, which pytrends gets 429'd from aggressively. This is why the calibration
+  set is 30 keywords, not the full 145.
 
 ## Known gaps
 
+Ordered by how much they cost. None is fixed yet.
+
 - **No deduplication.** A keyword trending for five days sends five identical
-  digests. `get_analyzed_signals()` filters on today only, with no memory of
-  what was already pushed. This is how a system earns being ignored.
-- **`signal_outcomes` is never written.** The table exists in the schema and
-  nothing populates it, so there is no hit rate and no way to calibrate. The
-  strategy doc calls for an eight-week calibration period; without backfill that
-  period produces no measurement.
-- **Silent failure.** The workflow uploads logs on failure and notifies nobody.
-  It could be broken for weeks unnoticed.
+  digests. `get_analyzed_signals()` filters on today only, with no memory of what
+  was already pushed. This is how a system earns being ignored.
+- **`signal_outcomes` is never written.** The table exists in `schema.sql` and
+  nothing populates it, so there is no hit rate. The eight-week calibration period
+  is defined as "record whether the price moved >10% in four weeks, expand the
+  keyword pool only above a 40% hit rate" - and with nothing writing that table,
+  the calibration period produces no measurement at all. Backfilling it needs a
+  price source; `yfinance` is the obvious candidate.
+- **Silent failure.** The workflow uploads logs on failure and notifies nobody. It
+  could be broken for weeks unnoticed. Every script also catches its own
+  exceptions and logs them, so a run where every Supabase write failed still exits
+  0 and the digest arrives empty - indistinguishable from a genuinely quiet day.
 - **Schedule.** `cron: '0 18 * * *'` is commented as 02:00 Taiwan time, but the
-  owner is in Australia, where it lands at 04:00 AEST.
+  owner is in Australia, where it lands at 04:00 AEST. Sydney sees daylight
+  saving; UTC cron does not follow it, so the local arrival time shifts by an hour
+  twice a year.
+- **SDK pin is old.** `anthropic==0.39.0` dates from late 2024. The
+  `messages.create()` call shape used in `generate_analysis.py` is stable, so it
+  works, but the pin is roughly eighteen months behind. `MODEL` is
+  `claude-sonnet-4-6`, which is a current model and correct for this job - a
+  classification-and-extraction pass over one signal at a time.
+- **RSS is fetched twice for Chinese keywords.** `estimate_news_count()` calls
+  `fetch_rss_hits()` again on a keyword that already ran it, doubling the feed
+  requests for every `zh` keyword.
 
-## Secrets
+## Deployment
 
-Set as GitHub Actions secrets, never committed: `SUPABASE_URL`, `SUPABASE_KEY`,
-`REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`, `ANTHROPIC_API_KEY`,
-`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`.
+The engine is not deployed from this repo - it needs its own, because the
+workflow must live at a repository root to run.
+
+1. **Supabase** - create a project, run `scripts/schema.sql` in the SQL editor,
+   copy the project URL and the `service_role` secret.
+2. **Reddit** - reddit.com/prefs/apps, create an app of type `script`, copy the
+   client id and secret.
+3. **Anthropic** - an API key. Cost is roughly $3-5/month at five analyses a day.
+4. **Telegram** - see below.
+5. **GitHub secrets** - `SUPABASE_URL`, `SUPABASE_KEY`, `REDDIT_CLIENT_ID`,
+   `REDDIT_CLIENT_SECRET`, `ANTHROPIC_API_KEY`, `TELEGRAM_BOT_TOKEN`,
+   `TELEGRAM_CHAT_ID`. Never committed.
+6. Run the workflow manually once from the Actions tab before trusting the
+   schedule.
+
+### Telegram
+
+Three steps, and the third is the one that is easy to miss:
+
+1. Message **@BotFather**, send `/newbot`, answer the two prompts. It returns a
+   token of the form `123456789:AAE...`. That is `TELEGRAM_BOT_TOKEN`.
+2. Message **@userinfobot**. It replies with your numeric user id. That is
+   `TELEGRAM_CHAT_ID`.
+3. **Open a chat with your own bot and send it any message.** A Telegram bot
+   cannot start a conversation - it may only reply to a chat a human opened
+   first. Skip this and `sendMessage` returns
+   `403: bot can't initiate conversation with a user`, with everything else
+   configured correctly.
+
+Verify without running the pipeline:
+
+```bash
+curl -s "https://api.telegram.org/bot<TOKEN>/sendMessage" \
+  -d chat_id=<CHAT_ID> -d text=test
+```
+
+`{"ok":true,...}` means all three steps are done.
