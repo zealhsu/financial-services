@@ -60,4 +60,7 @@ jobs:
             exit 0
           fi
           git commit -m "theses: weekly re-measure $(date -u +%Y-%m-%d)"
-          git push
+          # Explicit ref rather than a bare `git push`: on a scheduled run the
+          # checkout is whatever branch the schedule fired on, and a bare push
+          # depends on upstream tracking being set up the way we assume.
+          git push origin HEAD:${{ github.ref_name }}
