@@ -85,6 +85,22 @@ CREATE TABLE IF NOT EXISTS signal_outcomes (
 CREATE INDEX IF NOT EXISTS idx_outcomes_hit
   ON signal_outcomes (hit, created_at DESC);
 
+-- 6. 推送紀錄（去重用）
+--    只查「今天的訊號」而對推過什麼沒有記憶的話，一個關鍵字熱 5 天
+--    就是 5 則一模一樣的通知。去重的鍵是 keyword_id 不是 signal_id，
+--    因為 collect_trends.py 每天會刪掉當天的 signals 列再重插。
+CREATE TABLE IF NOT EXISTS digest_log (
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  keyword_id     UUID REFERENCES keywords(id) ON DELETE CASCADE,
+  signal_id      UUID REFERENCES signals(id) ON DELETE SET NULL,
+  info_gap_score FLOAT,
+  stage          TEXT,
+  pushed_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_digest_log_keyword
+  ON digest_log (keyword_id, pushed_at DESC);
+
 -- ============================================================
 -- 校準期種子關鍵字（30 個）
 -- P0：145 個 = 噪音 + pytrends 必被封。先用最高優勢集校準 8 週。
@@ -139,4 +155,5 @@ ON CONFLICT ON CONSTRAINT uq_keyword_region DO NOTHING;
 SELECT 'keywords' AS t, COUNT(*) FROM keywords
 UNION ALL SELECT 'snapshots', COUNT(*) FROM trend_snapshots
 UNION ALL SELECT 'signals',   COUNT(*) FROM signals
-UNION ALL SELECT 'outcomes',  COUNT(*) FROM signal_outcomes;
+UNION ALL SELECT 'outcomes',  COUNT(*) FROM signal_outcomes
+UNION ALL SELECT 'digest_log',COUNT(*) FROM digest_log;

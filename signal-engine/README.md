@@ -10,11 +10,11 @@ are now present** and the three Python scripts compile clean.
 |---|---|
 | `scripts/collect_trends.py` | Google Trends + Reddit + Taiwanese RSS; computes velocity and info_gap_score |
 | `scripts/generate_analysis.py` | Claude API pass over the top 5 signals; returns structured JSON |
-| `scripts/send_digest.py` | Telegram push, top 5, once a day |
+| `scripts/send_digest.py` | ntfy push, top 5, deduplicated against a 7-day cooldown |
 | `scripts/backfill_outcomes.py` | Writes `signal_outcomes`; computes the calibration hit rate |
 | `scripts/prices.py` | Daily closes from Stooq, no key, no dependency |
 | `scripts/schema.sql` | Supabase tables + 30 calibration keywords |
-| `scripts/migrations/002_outcome_unique.sql` | Run once on an already-created database |
+| `scripts/migrations/*.sql` | Run once each on an already-created database |
 | `scripts/validate_tickers.py` | SEC registrant check, copied unchanged from `theses/data/` |
 | `requirements.txt` | Pinned deps |
 | `.github/workflows/collect.yml` | Daily schedule, three steps in order |
@@ -106,13 +106,44 @@ hit rate credits the engine for the market's work. And a ticker that resolves to
 no price series is recorded as `unresolved`, never estimated; ETFs and most
 non-US listings land there, so the denominator is US single names.
 
+## The digest - ntfy, and what it will not repeat
+
+Delivery is **ntfy**, not Telegram. No account, no bot token, and none of
+Telegram's rule that a bot may not open a conversation until the human messages
+it first. The cost is that the topic name is the password, so it must be
+unguessable - `zealhsu-signals-7f3a2b`, not `signals`. Set `NTFY_TOPIC`; add
+`NTFY_SERVER` and `NTFY_TOKEN` only when self-hosting or using a protected topic.
+
+Published as a JSON body rather than with ntfy's `X-Title` header, because HTTP
+headers only guarantee ASCII and a Chinese title sent that way arrives mangled.
+
+**Deduplication.** A keyword pushed once enters a 7-day cooldown. The rule is not
+permanent silence - a keyword that walks from `emerging` to `near_mainstream` is
+producing an *exit* signal, exactly when it most needs to be seen. So cooldown,
+with two overrides:
+
+- the stage advanced, or
+- `info_gap_score` is at least 50% above what it was at the last push
+
+The pool is 25 candidates deep so that suppressed keywords are backfilled and the
+digest still arrives with five. The count of suppressed keywords is stated in the
+message, because a quiet day and a day where everything was already known are
+different facts and the reader should not have to guess which one they are in.
+
+Push history lands in `digest_log`, keyed on **`keyword_id`, not `signal_id`** -
+`collect_trends.py` deletes and reinserts each day's signal rows, so a signal id
+is not a stable identity. It is written only after a successful send; recording
+before would silence tomorrow a signal that never actually arrived today.
+
+Priority is graded so the notification stays worth having: 5 for a watchlist hit,
+4 for `near_mainstream`, 3 normally, and 2 on a no-signal day so it lands in the
+tray without buzzing. A notification that fires every day gets muted, and a muted
+notification is the same as not having built any of this.
+
 ## Known gaps
 
 Ordered by how much they cost. None is fixed yet.
 
-- **No deduplication.** A keyword trending for five days sends five identical
-  digests. `get_analyzed_signals()` filters on today only, with no memory of what
-  was already pushed. This is how a system earns being ignored.
 - **Silent failure.** The workflow uploads logs on failure and notifies nobody. It
   could be broken for weeks unnoticed. Every script also catches its own
   exceptions and logs them, so a run where every Supabase write failed still exits
@@ -140,32 +171,34 @@ workflow must live at a repository root to run.
 2. **Reddit** - reddit.com/prefs/apps, create an app of type `script`, copy the
    client id and secret.
 3. **Anthropic** - an API key. Cost is roughly $3-5/month at five analyses a day.
-4. **Telegram** - see below.
+4. **ntfy** - see below.
 5. **GitHub secrets** - `SUPABASE_URL`, `SUPABASE_KEY`, `REDDIT_CLIENT_ID`,
-   `REDDIT_CLIENT_SECRET`, `ANTHROPIC_API_KEY`, `TELEGRAM_BOT_TOKEN`,
-   `TELEGRAM_CHAT_ID`. Never committed.
+   `REDDIT_CLIENT_SECRET`, `ANTHROPIC_API_KEY`, `NTFY_TOPIC`. Never committed.
+   `NTFY_SERVER` and `NTFY_TOKEN` only if self-hosting or using a protected topic.
 6. Run the workflow manually once from the Actions tab before trusting the
    schedule.
 
-### Telegram
+### ntfy
 
-Three steps, and the third is the one that is easy to miss:
+Two steps, and no account:
 
-1. Message **@BotFather**, send `/newbot`, answer the two prompts. It returns a
-   token of the form `123456789:AAE...`. That is `TELEGRAM_BOT_TOKEN`.
-2. Message **@userinfobot**. It replies with your numeric user id. That is
-   `TELEGRAM_CHAT_ID`.
-3. **Open a chat with your own bot and send it any message.** A Telegram bot
-   cannot start a conversation - it may only reply to a chat a human opened
-   first. Skip this and `sendMessage` returns
-   `403: bot can't initiate conversation with a user`, with everything else
-   configured correctly.
+1. Install the ntfy app (iOS / Android / web), **Subscribe to topic**, and enter a
+   name only you would guess - `zealhsu-signals-7f3a2b`, not `signals`. On the
+   public server the topic name is the only thing protecting the feed: anyone who
+   knows it can read it, and anyone who knows it can publish to it.
+2. Set that same string as the `NTFY_TOPIC` secret.
 
 Verify without running the pipeline:
 
 ```bash
-curl -s "https://api.telegram.org/bot<TOKEN>/sendMessage" \
-  -d chat_id=<CHAT_ID> -d text=test
+curl -s -H 'Content-Type: application/json' -d \
+  '{"topic":"YOUR-TOPIC","title":"test","message":"hello","priority":3}' \
+  https://ntfy.sh
 ```
 
-`{"ok":true,...}` means all three steps are done.
+The phone buzzes and the response is JSON with an `id`. That is the whole setup.
+
+To make the topic private instead of merely obscure, self-host ntfy or use a
+reserved topic on ntfy.sh, then set `NTFY_TOKEN` and (if self-hosted)
+`NTFY_SERVER`. The script sends `Authorization: Bearer` when the token is present
+and works unchanged either way.

@@ -48,12 +48,14 @@ jobs:
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
         run: python scripts/backfill_outcomes.py
 
-      - name: Send Telegram digest
+      - name: Send digest
         env:
-          SUPABASE_URL:       ${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY:       ${{ secrets.SUPABASE_KEY }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          NTFY_TOPIC:   ${{ secrets.NTFY_TOPIC }}
+          # 以下兩個只有自架 ntfy 或 topic 有設存取控制時才需要
+          NTFY_SERVER:  ${{ secrets.NTFY_SERVER }}
+          NTFY_TOKEN:   ${{ secrets.NTFY_TOKEN }}
         run: python scripts/send_digest.py
 
       - name: Upload logs on failure
