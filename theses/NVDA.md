@@ -44,9 +44,22 @@ risks:
     note: "Would hit volume and pricing together"
     severity: high
 exit_triggers:
-  - "Any pillar rated deteriorating for two consecutive quarters"
-  - "Gross margin falls below 65%"
-  - "Taiwan Strait risk materialises - reassess immediately, do not wait for a quarter"
+  - id: pillar-deterioration
+    rule: "Any pillar rated deteriorating for two consecutive quarters"
+    kind: exit
+  - id: margin-rate-of-change
+    rule: "Gross margin falls more than 5pts in a single fiscal year, at any level"
+    kind: alert
+    rationale: "FY2023 fell 8pts in one year; a level-only rule fires too late"
+  - id: margin-level
+    rule: "Gross margin falls below 65%"
+    kind: exit
+    status: placeholder
+    referent: "64.9% was the pre-AI peak (FY2022)"
+    alternative: "70% - floor of the AI era, fires as an earlier warning"
+  - id: taiwan
+    rule: "Taiwan Strait risk materialises - reassess immediately, do not wait for a scheduled review"
+    kind: escalate
 ---
 
 # NVDA - Investment Thesis
