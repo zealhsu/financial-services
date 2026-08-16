@@ -24,9 +24,12 @@ pillars:
     claim: "Gross margin holds at or above 70%"
     test: "Reported gross margin >= 70% each quarter"
     status: on-track
-    trend: stable
+    trend: declining
     latest: 0.711
     latest_period: FY2026
+    prior: 0.750
+    prior_period: FY2025
+    history_note: "19 years of 10-K history: low 34.3% (FY2009), median 56.9%, high 75.0% (FY2025). Pre-AI peak was 64.9% (FY2022)."
 risks:
   - id: taiwan
     claim: "Taiwan Strait conflict or blockade"
@@ -72,10 +75,34 @@ and still lost 80%.
 |---|---|---|---|
 | 1 | Hyperscaler capex keeps growing | Combined MSFT / GOOGL / AMZN / META capex, year over year | Unverified |
 | 2 | NVIDIA holds training-silicon lead | No competitor takes durable double-digit training share | Unverified |
-| 3 | Gross margin holds >= 70% | Reported gross margin each quarter | On track - 71.1% (FY2026) |
+| 3 | Gross margin holds >= 70% | Reported gross margin each quarter | On track - 71.1% (FY2026), **declining** |
 
 Pillars 1 and 2 are marked unverified because neither has been measured yet.
 Filling them in is the first job of the next review, not something to assume.
+
+### Pillar 3 in historical context
+
+Nineteen years of gross margin as filed, from the 10-Ks:
+
+| Era | Range | Note |
+|---|---|---|
+| FY2008-2011 | 34.3% - 45.6% | Trough is FY2009, the all-time low |
+| FY2012-2022 | 51.4% - 64.9% | The long climb. FY2022's 64.9% is the pre-AI peak |
+| FY2023 | 56.9% | Crypto demand shock - **an 8pt fall in a single year** |
+| FY2024-2026 | 71.1% - 75.0% | The AI era |
+
+Median across the whole period is 56.9%.
+
+Two things follow. First, margin is **already compressing**: 75.0% in FY2025 to
+71.1% in FY2026, down 3.9pts, making FY2026 the weakest of the three AI years.
+The pillar is on track but the trend is not flat, and the frontmatter records it
+as declining rather than stable.
+
+Second, FY2023 is the precedent worth holding onto. The fall from 64.9% to 56.9%
+happened in one year. Any threshold set on the absolute level alone will
+therefore trigger late - by the time the level confirms the damage, the change
+has already happened. That is why the exit triggers below carry a
+rate-of-change rule as well as a level.
 
 ## Risks
 
@@ -123,9 +150,19 @@ Position sizing has not been supplied, so true exposure is unquantified.
 ## Exit triggers
 
 1. Any pillar rated **deteriorating** for two consecutive quarters
-2. Gross margin falls below **65%** *(placeholder - owner to confirm)*
-3. Taiwan Strait risk materialises - reassess immediately, do not wait for a
+2. Gross margin **falls more than 5pts in a single fiscal year** - review
+   regardless of the absolute level. FY2023 fell 8pts from 64.9% to 56.9% in one
+   year; a level-only rule would not have fired until the damage was done.
+3. Gross margin falls below **65%** *(placeholder - owner to confirm)*. The
+   number has a referent - 64.9% was the pre-AI peak, so breaching it means the
+   AI-era pricing premium is fully gone - but it tolerates 6pts of compression
+   from here, which is a large drawdown to sit through. A tighter **70%** is the
+   floor of the AI era and would fire as an early warning instead.
+4. Taiwan Strait risk materialises - reassess immediately, do not wait for a
    scheduled review
+
+A single threshold cannot serve as both an alert and an exit. Trigger 2 is the
+early signal, trigger 3 the exit; the owner sets where each sits.
 
 ## Update log
 
