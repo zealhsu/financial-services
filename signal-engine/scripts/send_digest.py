@@ -299,7 +299,9 @@ def send_ntfy(title: str, message: str, priority: int = 3,
         log.error("NTFY_TOPIC 未設定，無法推送")
         return False
 
-    server = os.environ.get("NTFY_SERVER", "https://ntfy.sh").rstrip("/")
+    # `or`, not a get() default: 未設定的 GitHub secret 會以空字串送進來，
+    # 不是「這個 key 不存在」，所以 default 永遠不會生效。
+    server = (os.environ.get("NTFY_SERVER") or "https://ntfy.sh").rstrip("/")
     payload = {
         "topic":    topic,
         "title":    title,

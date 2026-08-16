@@ -45,7 +45,24 @@ REVENUE = ['RevenueFromContractWithCustomerExcludingAssessedTax', 'Revenues',
 # Without this every run rewrites the file with noise in the last decimal and
 # the git history stops being readable.
 MATERIAL = {'gross_margin': 0.002, 'inventory_days': 1.0,
-            'hyperscaler_capex': 1e9}
+            'hyperscaler_capex': 1e9, 'purchase_obligations': 1e9}
+
+# Any metric added later without an entry above still gets a floor. A zero
+# default made an unchanged value count as a change, which rewrote `45.77e9`
+# as `4.577e+10` every week and - worse - set `prior` to the same number as
+# `latest`, destroying the comparison the field exists for.
+DEFAULT_MATERIAL_FRACTION = 0.001
+
+
+def is_material(metric, old, new):
+    """Has this moved enough to be worth writing down?"""
+    if old is None:
+        return True
+    old = float(old)
+    floor = MATERIAL.get(metric)
+    if floor is None:
+        floor = abs(old) * DEFAULT_MATERIAL_FRACTION
+    return abs(new - old) >= floor
 
 
 # ─────────────────────────────────────────
@@ -244,7 +261,7 @@ def check_thesis(path, dry_run=False):
             print(f'  {block["id"]:24} {old} -> {fmt(metric, new)}'
                   f'  (as of {measured[metric]["asof"]})')
 
-            if old is not None and abs(new - float(old)) < MATERIAL.get(metric, 0):
+            if not is_material(metric, old, new):
                 continue
 
             if old is not None:
@@ -351,7 +368,10 @@ def notify(results):
     headers = {'Content-Type': 'application/json; charset=utf-8'}
     if os.environ.get('NTFY_TOKEN'):
         headers['Authorization'] = f'Bearer {os.environ["NTFY_TOKEN"]}'
-    server = os.environ.get('NTFY_SERVER', 'https://ntfy.sh').rstrip('/')
+    # `or`, not a get() default: an unset GitHub secret arrives as an empty
+    # string, not as an absent key, so the default never applies and
+    # urllib raises "unknown url type: ''".
+    server = (os.environ.get('NTFY_SERVER') or 'https://ntfy.sh').rstrip('/')
     req = urllib.request.Request(server, data=json.dumps(payload).encode(),
                                  headers=headers, method='POST')
     try:

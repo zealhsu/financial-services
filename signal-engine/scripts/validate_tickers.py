@@ -35,7 +35,7 @@ import time
 import urllib.request
 
 SEC_TICKERS_URL = 'https://www.sec.gov/files/company_tickers.json'
-CACHE_PATH = os.environ.get('SEC_TICKER_CACHE', '/tmp/sec_company_tickers.json')
+CACHE_PATH = os.environ.get('SEC_TICKER_CACHE') or '/tmp/sec_company_tickers.json'
 CACHE_TTL_SECONDS = 7 * 24 * 3600
 
 # SEC rejects requests without a descriptive User-Agent, and rejects ones that
