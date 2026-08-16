@@ -79,23 +79,36 @@ risks:
     claim: "AI capital expenditure cycle peaks"
     note: "Would hit volume and pricing together"
     severity: high
+# `metric` / `op` / `threshold` make a rule executable. weekly_check.py
+# evaluates only triggers carrying all three; the rest stay prose for a human,
+# and the script reports them as unevaluated rather than silently ignoring them.
 exit_triggers:
   - id: pillar-deterioration
     rule: "Any pillar rated deteriorating for two consecutive quarters"
     kind: exit
+    evaluated_by: human
   - id: margin-rate-of-change
     rule: "Gross margin falls more than 5pts in a single fiscal year, at any level"
     kind: alert
+    metric: gross_margin_yoy_delta
+    op: "<="
+    threshold: -0.05
     rationale: "FY2023 fell 8pts in one year; a level-only rule fires too late"
   - id: margin-alert
     rule: "Gross margin falls below 70%"
     kind: alert
     status: confirmed
+    metric: gross_margin
+    op: "<"
+    threshold: 0.70
     referent: "Floor of the AI era (FY2024-26 ran 71.1-75.0%)"
   - id: margin-level
     rule: "Gross margin falls below 65%"
     kind: exit
     status: confirmed
+    metric: gross_margin
+    op: "<"
+    threshold: 0.65
     referent: "64.9% was the pre-AI peak (FY2022)"
     note: "Owner-confirmed 2026-08-16. Company-specific - do NOT reuse this level
       for another name. Across the peer set 70% would put AVGO, AMD, MRVL and INTC
@@ -103,6 +116,7 @@ exit_triggers:
   - id: taiwan
     rule: "Taiwan Strait risk materialises - reassess immediately, do not wait for a scheduled review"
     kind: escalate
+    evaluated_by: human
 ---
 
 # NVDA - Investment Thesis
