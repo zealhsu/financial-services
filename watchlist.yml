@@ -63,10 +63,29 @@ rules:
       with a thesis-driven horizon: an exit trigger firing near the 12-month mark
       deserves the tax cost stated explicitly rather than discovered later.
     us_dividend_withholding: >
-      A W-8BEN lodged with the broker reduces US dividend withholding for
-      Australian residents under the tax treaty. Check whether CommSec has one on
-      file before holding US dividend payers.
-    w8ben_lodged: unknown
+      Under Article 10 of the Australia-US treaty, withholding on US dividends to
+      an Australian resident portfolio investor is generally capped at 15% rather
+      than the default 30%. The reduced rate is claimed by lodging a W-8BEN with
+      the broker, not with the IRS.
+    w8ben_lodged: probably_yes
+    w8ben_note: >
+      CommSec requires a W-8BEN to open an International Shares Account, so one is
+      almost certainly already on file - an international account exists and is
+      quoting US prices. The thing to check is not whether it was lodged but
+      whether it has expired.
+    w8ben_expiry_rule: >
+      Valid until 31 December of the third calendar year after signing, and
+      invalidated earlier by a change of name or residency. Verify the current
+      status in CommSec's W-8 Hub before relying on the 15% rate.
+    w8ben_scope: >
+      Applies to US-domiciled holdings. ASX-listed ETFs such as NDQ and IEM give
+      US exposure through an Australian structure and do not need it.
+    us_estate_tax_note: >
+      Separately, US-domiciled securities can expose a non-resident holder to US
+      estate tax above a low threshold. This is a real consideration when choosing
+      between a US-listed ETF and an ASX-listed equivalent holding the same
+      companies. Confirm the current threshold and treatment with an Australian
+      accountant - it is not settled from here.
     verify_with_professional: true
 
   entry:
