@@ -71,10 +71,15 @@ exit_triggers:
 
 # NVDA - Investment Thesis
 
-> **Status: draft.** The rationale, horizon and sell conditions below were
-> stated by the owner; the pillars, tests, numeric thresholds and valuation
-> anchors were derived by Claude from SEC filings. The 65% gross-margin
-> trigger in particular is a placeholder and needs the owner's own number.
+> **Status: draft.** The rationale, horizon and sell conditions were stated by
+> the owner, and the margin thresholds were confirmed by the owner on
+> 2026-08-16. The pillars, tests and valuation anchors were derived by Claude
+> from SEC filings.
+>
+> Two of the three pillars are still unmeasured, there is no forward estimate
+> anywhere in this file, and no target price has been modelled. It is a
+> discipline for tracking whether a position's reasons still hold - not a
+> complete investment process.
 >
 > **This is analyst work product, not investment advice.**
 
