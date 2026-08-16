@@ -1,0 +1,161 @@
+# Watchlist and the rules that govern acting on it.
+#
+# The tiers come from docs/investment-strategy.md: a name only earns daily
+# attention if it could plausibly be bought soon. Everything else is watched by
+# the signal engine so it does not consume attention until it moves.
+#
+# The `rules` block exists so that decisions rest on numbers written down while
+# calm, rather than on judgement made while wanting to buy something. The
+# preflight skill reads these; it does not invent them.
+#
+# Values marked `confirmed: false` are Claude's defaults with reasoning, not the
+# owner's decisions. Preflight surfaces them as unset rather than enforcing them.
+
+owner:
+  base_currency: AUD
+  tax_residency: AU
+  broker: CommSec
+  positions_held: none          # as of 2026-08-16 - nothing bought yet
+  experience: beginner
+
+rules:
+
+  position_sizing:
+    # A good thesis at a large weight is still a risk-management failure. These
+    # cap how wrong any single decision can be, which matters more for a first
+    # portfolio than picking well does.
+    max_single_position_pct_of_portfolio: 5
+    max_theme_pct_of_portfolio: 25
+    max_satellite_pct_of_portfolio: 30
+    confirmed: false
+    rationale: >
+      Defaults, not decisions. 5% means a total loss on one name costs 5% of the
+      portfolio - survivable, and small enough that being wrong is not ruinous.
+      The theme cap matters more here than the single-name cap: this watchlist is
+      one bet (AI compute) wearing thirty tickers, so caps applied per name would
+      permit a concentrated theme bet while looking diversified.
+    look_through_etfs: true
+    note: >
+      Exposure counts holdings inside ETFs, not just direct lines. SMH is roughly
+      48% NVDA + TSM + AVGO + AMD + MU; buying SMH alongside those names
+      concentrates rather than diversifies.
+
+  currency:
+    # Every US position is also an AUD/USD bet. This is absent from the strategy
+    # document and is a material omission for an AUD-based investor in US equity.
+    report_returns_in: AUD
+    record_fx_at_entry: true
+    note: >
+      A 20% gain in USD is zero in AUD if the Australian dollar rises 20% over the
+      same period. Returns quoted in USD are not the return actually earned.
+      Some ASX-listed ETFs offer a currency-hedged share class alongside the
+      unhedged one - worth checking for any ETF held as core, where the FX bet is
+      unintended rather than deliberate.
+    hedged_alternatives_checked: false
+
+  tax:
+    # Not tax advice. Confirm with an Australian accountant before relying on it.
+    cgt_discount_min_holding_days: 365
+    note: >
+      Australian individuals may receive a 50% CGT discount on assets held longer
+      than 12 months. Selling at month 11 rather than month 13 can therefore cost
+      materially more after tax on the same gross gain. This interacts directly
+      with a thesis-driven horizon: an exit trigger firing near the 12-month mark
+      deserves the tax cost stated explicitly rather than discovered later.
+    us_dividend_withholding: >
+      A W-8BEN lodged with the broker reduces US dividend withholding for
+      Australian residents under the tax treaty. Check whether CommSec has one on
+      file before holding US dividend payers.
+    w8ben_lodged: unknown
+    verify_with_professional: true
+
+  entry:
+    tranches_pct: [20, 40, 40]
+    note: >
+      Three tranches, from the strategy document. Each tranche is a separate
+      brokerage fee, so on small parcels the fee drag is real - size the first
+      tranche so costs stay a sensible fraction of it.
+    ath_caution: true
+    ath_note: >
+      The strategy document already flags buying near all-time highs. Preflight
+      surfaces it as a warning to acknowledge, not a block.
+
+  exit:
+    require_written_trigger: true
+    note: >
+      No position is entered without a written number that would end it. A
+      position with no exit condition is a position that will be held through
+      anything.
+
+  discipline:
+    core_satellite: true
+    note: >
+      From the strategy document: ETF core compounds, single names are satellite.
+      Never sell compounding core to fund a satellite position. The 1.1^x versus
+      x^2 comparison in that document is the anchor - compounding needs a fixed
+      percentage each year, while active selection needs an ever-larger absolute
+      gain to keep pace, which no one delivers annually.
+    record_decisions_not_taken: true
+    record_note: >
+      Names passed on are logged with the reason. Memory keeps the wins and
+      discards the passes, so without a written record there is nothing to
+      calibrate judgement against.
+
+# ---------------------------------------------------------------------------
+# Tier 1 - looked at daily. Full thesis file required before any purchase.
+# ---------------------------------------------------------------------------
+tier_1:
+  - {ticker: NDQ,  market: ASX,    type: etf,   role: core,      thesis: null}
+  - {ticker: IEM,  market: ASX,    type: etf,   role: core,      thesis: null}
+  - {ticker: SMH,  market: US,     type: etf,   role: core,      thesis: null}
+  - {ticker: TSM,  market: US,     type: stock, role: satellite, thesis: null}
+  - {ticker: NVDA, market: US,     type: stock, role: satellite, thesis: theses/NVDA.md}
+  - {ticker: CEG,  market: US,     type: stock, role: satellite, thesis: null}
+  - {ticker: VST,  market: US,     type: stock, role: satellite, thesis: null}
+  - {ticker: TSLA, market: US,     type: stock, role: satellite, thesis: null}
+
+# ---------------------------------------------------------------------------
+# Tier 2 - reviewed weekly. Leading indicators tracked, no full thesis yet.
+# ---------------------------------------------------------------------------
+tier_2:
+  - {ticker: MRVL, theme: silicon-photonics}
+  - {ticker: AVGO, theme: silicon-photonics}
+  - {ticker: CCJ,  theme: nuclear}
+  - {ticker: BWXT, theme: nuclear}
+  - {ticker: IONQ, theme: quantum}
+  - {ticker: RKLB, theme: space}
+  - {ticker: UFO,  theme: space, type: etf}
+  - {ticker: MP,   theme: rare-earth}
+  - {ticker: NBIS, theme: neocloud}
+  - {ticker: VRT,  theme: ai-infrastructure}
+  - {ticker: ANET, theme: ai-infrastructure}
+  - {ticker: MU,   theme: memory}
+
+# ---------------------------------------------------------------------------
+# Tier 3 - the signal engine watches these. They surface only on a signal.
+# ---------------------------------------------------------------------------
+tier_3:
+  taiwan_supply_chain: [2313, 3491, 5483, 3443, 4958, 6285]   # TWSE - CommSec access unconfirmed
+  optical:             [AAOI, LITE, COHR]
+  nuclear_other:       [OKLO, UUUU, SMR]
+  quantum_other:       [QBTS]
+  spacex_chain:        [TDG, HXL, ASTS]                        # MOG trades as MOG.A / MOG.B
+  robotics:            [BOTT, BOTZ, OUST]
+  application_layer:   [PLTR, AAPL, GOOG, ORCL, ARM, ETN, NEE, GEV, ASML]
+  theme_etfs:          [AIQ, AIPO, QQQ]
+
+# ---------------------------------------------------------------------------
+# Corrections to the fact-check table in docs/investment-strategy.md.
+# Five of seven symbols listed there as fake are real SEC registrants. Every one
+# is a 2025-2026 listing, which is the pattern: a model checking from training
+# data misses recent listings, and recent listings are exactly what a discovery
+# system is for. Verified via theses/data/validate_tickers.py.
+# ---------------------------------------------------------------------------
+ticker_corrections:
+  SNDK: {verdict: real, name: Sandisk Corp, cik: "0002023554", doc_said: "delisted 2016"}
+  IMSR: {verdict: real, name: Terrestrial Energy Inc., cik: "0002019804", doc_said: "reactor model name"}
+  INFQ: {verdict: real, name: Infleqtion Inc., cik: "0002007825", doc_said: "no such company", note: "quantum - an active theme here"}
+  FLY:  {verdict: real, name: Firefly Aerospace Inc., cik: "0001860160", doc_said: "no pure-play found", note: "space - an active theme here"}
+  PURR: {verdict: real, name: Hyperliquid Strategies Inc, cik: "0002078856", doc_said: "suspected meme coin"}
+  DRAM: {verdict: not_an_sec_registrant, doc_said: "technical term", note: "doc was right"}
+  HUMN: {verdict: not_an_sec_registrant, doc_said: "no match found", note: "doc was right"}
