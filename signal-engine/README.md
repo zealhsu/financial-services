@@ -111,7 +111,7 @@ non-US listings land there, so the denominator is US single names.
 Delivery is **ntfy**, not Telegram. No account, no bot token, and none of
 Telegram's rule that a bot may not open a conversation until the human messages
 it first. The cost is that the topic name is the password, so it must be
-unguessable - `zealhsu-signals-7f3a2b`, not `signals`. Set `NTFY_TOPIC`; add
+unguessable - `<name>-signals-<random hex>`, not `signals`. Set `NTFY_TOPIC`; add
 `NTFY_SERVER` and `NTFY_TOKEN` only when self-hosting or using a protected topic.
 
 Published as a JSON body rather than with ntfy's `X-Title` header, because HTTP
@@ -183,9 +183,18 @@ workflow must live at a repository root to run.
 Two steps, and no account:
 
 1. Install the ntfy app (iOS / Android / web), **Subscribe to topic**, and enter a
-   name only you would guess - `zealhsu-signals-7f3a2b`, not `signals`. On the
-   public server the topic name is the only thing protecting the feed: anyone who
-   knows it can read it, and anyone who knows it can publish to it.
+   name only you would guess. On the public server the topic name is the only
+   thing protecting the feed: anyone who knows it can read it, and anyone who
+   knows it can publish to it.
+
+   ```bash
+   echo "$(whoami)-signals-$(openssl rand -hex 3)"
+   ```
+
+   **Never write the real topic into this repository** - not in a README, not in
+   a comment, not as a default in code. A topic name is a shared secret, and a
+   secret that lives in version control is one repository-visibility change away
+   from being public. It belongs in GitHub Secrets and nowhere else.
 2. Set that same string as the `NTFY_TOPIC` secret.
 
 Verify without running the pipeline:
