@@ -75,8 +75,15 @@ CREATE TABLE IF NOT EXISTS signal_outcomes (
   price_12w       FLOAT,
   hit             BOOLEAN,      -- 4 週漲幅 > 10% = 命中（門檻可調）
   note            TEXT,         -- 人工標注：真訊號 / 噪音 / 炒作
-  created_at      TIMESTAMPTZ DEFAULT NOW()
+  created_at      TIMESTAMPTZ DEFAULT NOW(),
+  -- backfill_outcomes.py 每天重跑，靠 upsert 補齊 1w/4w/12w 的價格。
+  -- 沒有這個唯一鍵，upsert 會退化成 insert，同一個 (訊號, 標的) 每天
+  -- 多一列，命中率被重複計算灌爆。已建好的專案跑 migrations/002。
+  CONSTRAINT uq_outcome_signal_ticker UNIQUE (signal_id, ticker)
 );
+
+CREATE INDEX IF NOT EXISTS idx_outcomes_hit
+  ON signal_outcomes (hit, created_at DESC);
 
 -- ============================================================
 -- 校準期種子關鍵字（30 個）

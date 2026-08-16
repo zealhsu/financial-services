@@ -11,7 +11,10 @@ are now present** and the three Python scripts compile clean.
 | `scripts/collect_trends.py` | Google Trends + Reddit + Taiwanese RSS; computes velocity and info_gap_score |
 | `scripts/generate_analysis.py` | Claude API pass over the top 5 signals; returns structured JSON |
 | `scripts/send_digest.py` | Telegram push, top 5, once a day |
+| `scripts/backfill_outcomes.py` | Writes `signal_outcomes`; computes the calibration hit rate |
+| `scripts/prices.py` | Daily closes from Stooq, no key, no dependency |
 | `scripts/schema.sql` | Supabase tables + 30 calibration keywords |
+| `scripts/migrations/002_outcome_unique.sql` | Run once on an already-created database |
 | `scripts/validate_tickers.py` | SEC registrant check, copied unchanged from `theses/data/` |
 | `requirements.txt` | Pinned deps |
 | `.github/workflows/collect.yml` | Daily schedule, three steps in order |
@@ -68,6 +71,41 @@ know why:
   IPs, which pytrends gets 429'd from aggressively. This is why the calibration
   set is 30 keywords, not the full 145.
 
+## Calibration - the measurement, now wired
+
+The eight-week rule is: record whether each named ticker moved more than 10% in
+the four weeks after its signal, and expand the keyword pool only above a 40% hit
+rate. `signal_outcomes` was built for exactly that and nothing wrote to it, so the
+calibration period would have ended with no number to judge against - the one
+failure that makes the whole exercise pointless.
+
+`backfill_outcomes.py` runs daily, after analysis and before the digest:
+
+- new signals get an outcome row stamped with the close on the signal date
+- older ones get `price_1w`, `price_4w`, `price_12w` filled as each date arrives
+- `hit` is judged once, when `price_4w` lands: `price_4w / price_at_signal - 1 > 0.10`
+
+It is idempotent - a filled column is never recomputed, because a historical
+close is a fact that does not change and re-fetching only risks a rate limit. It
+is also the one script that does **not** swallow its exceptions: a failed write
+turns the workflow red, since quietly losing calibration days is the disease
+being treated.
+
+```bash
+python scripts/backfill_outcomes.py            # backfill, then print the summary
+python scripts/backfill_outcomes.py --report   # summary only, writes nothing
+```
+
+The report refuses to draw a conclusion from a small sample: under 20 judged
+outcomes it prints the rate with a warning that it is not yet a result. Five
+signals, three of which worked, is not a 60% hit rate.
+
+Two honest limits. The threshold is a **raw** move, not measured against SMH or
+QQQ - in a quarter where the whole AI complex rises 15%, a naive reading of the
+hit rate credits the engine for the market's work. And a ticker that resolves to
+no price series is recorded as `unresolved`, never estimated; ETFs and most
+non-US listings land there, so the denominator is US single names.
+
 ## Known gaps
 
 Ordered by how much they cost. None is fixed yet.
@@ -75,12 +113,6 @@ Ordered by how much they cost. None is fixed yet.
 - **No deduplication.** A keyword trending for five days sends five identical
   digests. `get_analyzed_signals()` filters on today only, with no memory of what
   was already pushed. This is how a system earns being ignored.
-- **`signal_outcomes` is never written.** The table exists in `schema.sql` and
-  nothing populates it, so there is no hit rate. The eight-week calibration period
-  is defined as "record whether the price moved >10% in four weeks, expand the
-  keyword pool only above a 40% hit rate" - and with nothing writing that table,
-  the calibration period produces no measurement at all. Backfilling it needs a
-  price source; `yfinance` is the obvious candidate.
 - **Silent failure.** The workflow uploads logs on failure and notifies nobody. It
   could be broken for weeks unnoticed. Every script also catches its own
   exceptions and logs them, so a run where every Supabase write failed still exits

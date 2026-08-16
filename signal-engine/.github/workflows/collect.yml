@@ -40,6 +40,14 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python scripts/generate_analysis.py
 
+      # 這步在推送之前跑，這樣 digest 裡的命中率是今天的。
+      # 它刻意會讓 workflow 紅掉——校準資料靜靜地少幾天，正是它要修的病。
+      - name: Backfill signal outcomes
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: python scripts/backfill_outcomes.py
+
       - name: Send Telegram digest
         env:
           SUPABASE_URL:       ${{ secrets.SUPABASE_URL }}
