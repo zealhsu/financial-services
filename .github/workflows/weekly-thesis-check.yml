@@ -1,0 +1,66 @@
+name: Weekly thesis check
+
+# 09:00 Monday AEST = 23:00 Sunday UTC. Cron is UTC and does not follow
+# daylight saving, so between October and April (AEDT) this lands at 10:00
+# local instead of 09:00. That one-hour drift does not matter for a weekly
+# check; if it ever does, the fix is two scheduled entries, not a timezone.
+on:
+  schedule:
+    - cron: '0 23 * * 0'
+  workflow_dispatch:      # manual run, for testing
+
+permissions:
+  contents: write         # the job commits refreshed numbers back
+
+concurrency:
+  group: weekly-thesis-check
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      # SEC returns 403 without a descriptive User-Agent naming a real contact.
+      # It is not a secret, but it is account-specific, so it lives in a
+      # repository variable rather than being hardcoded here.
+      - name: Fetch SEC companyfacts
+        working-directory: theses/data
+        env:
+          SEC_USER_AGENT: ${{ vars.SEC_USER_AGENT }}
+        run: python3 fetch.py
+
+      - name: Re-measure theses
+        working-directory: theses/data
+        env:
+          NTFY_TOPIC:  ${{ secrets.NTFY_TOPIC }}
+          NTFY_SERVER: ${{ secrets.NTFY_SERVER }}
+          NTFY_TOKEN:  ${{ secrets.NTFY_TOKEN }}
+        run: python3 weekly_check.py
+
+      # cf_*.json are multi-megabyte SEC dumps - regenerated every run and
+      # never worth a commit. .gitignore covers them; this is the backstop.
+      - name: Commit any changes
+        run: |
+          git config user.name  "thesis-check[bot]"
+          git config user.email "thesis-check[bot]@users.noreply.github.com"
+          git add theses/*.md theses/data/leading_indicators.json
+          if git diff --cached --quiet; then
+            echo "No material change this week - nothing to commit."
+            exit 0
+          fi
+          git commit -m "theses: weekly re-measure $(date -u +%Y-%m-%d)"
+          # Explicit ref rather than a bare `git push`: on a scheduled run the
+          # checkout is whatever branch the schedule fired on, and a bare push
+          # depends on upstream tracking being set up the way we assume.
+          git push origin HEAD:${{ github.ref_name }}

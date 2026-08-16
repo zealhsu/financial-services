@@ -8,10 +8,38 @@
 
 When populating a model template with public company data, extract financials directly from SEC filings.
 
+### Step 0: Set a User-Agent
+
+**Every request to `sec.gov` and `data.sec.gov` must send a descriptive `User-Agent` header.** SEC's fair-access policy asks for a declared identity with contact details, and requests that look like a bare scripting client are rejected with `403` before any data is returned. A default `curl` or `curl/8.x` agent fails; any descriptive string succeeds.
+
+```bash
+UA="Firm Name research (contact: analyst@example.com)"
+curl -H "User-Agent: $UA" "https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json"
+```
+
+A `403` here means the header is missing or looks automated, not that the filing is unavailable. Keep requests under 10 per second.
+
 ### Step 1: Locate the Filing
+
+**Prefer the XBRL API over the HTML filing.** SEC publishes every tagged figure as JSON, which removes the document parsing step entirely:
+
+| Endpoint | Returns |
+|---|---|
+| `https://www.sec.gov/files/company_tickers.json` | Ticker to CIK map for every registrant |
+| `https://data.sec.gov/api/xbrl/companyfacts/CIK##########.json` | Every tagged fact, all periods, one company |
+| `https://data.sec.gov/api/xbrl/companyconcept/CIK##########/us-gaap/<Concept>.json` | One concept's full history |
+
+CIK must be zero-padded to 10 digits. Each fact carries `start`, `end`, `form`, `fy` and `val`, so annual figures are the rows where `form` is `10-K` (or `20-F` for a foreign private issuer) and the period spans roughly 365 days.
+
+Fall back to the filing documents when a figure is narrative or untagged:
 
 1. Use SEC EDGAR: `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=[TICKER]&type=10-K`
 2. For quarterly data, use `type=10-Q`
+
+**Concept names are not consistent across filers.** Always search several tags and take the most recent match rather than accepting the first tag that returns anything -- a filer may have retired a tag years ago and left stale data behind it. Two traps worth naming:
+
+- **Revenue** appears as `RevenueFromContractWithCustomerExcludingAssessedTax` for most filers but `Revenues` for others.
+- **D&A** is a combined `DepreciationDepletionAndAmortization` for some filers, while others tag `Depreciation` and `AmortizationOfIntangibleAssets` separately. Taking only the first understates D&A, and therefore EBITDA, for any company carrying material acquisition intangibles.
 
 ### Step 2: Identify Filing Currency
 

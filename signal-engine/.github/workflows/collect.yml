@@ -1,0 +1,67 @@
+name: Daily Signal Collection & Analysis
+
+on:
+  schedule:
+    # 每天 UTC 18:00 = 台灣時間 凌晨 02:00
+    - cron: '0 18 * * *'
+  workflow_dispatch:   # 允許手動觸發（測試用）
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run data collection
+        env:
+          SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY:         ${{ secrets.SUPABASE_KEY }}
+          REDDIT_CLIENT_ID:     ${{ secrets.REDDIT_CLIENT_ID }}
+          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+          REDDIT_USER_AGENT:    "social-signal-engine/2.0"
+        run: python scripts/collect_trends.py
+
+      - name: Run Claude analysis
+        env:
+          SUPABASE_URL:      ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY:      ${{ secrets.SUPABASE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python scripts/generate_analysis.py
+
+      # 這步在推送之前跑，這樣 digest 裡的命中率是今天的。
+      # 它刻意會讓 workflow 紅掉——校準資料靜靜地少幾天，正是它要修的病。
+      - name: Backfill signal outcomes
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: python scripts/backfill_outcomes.py
+
+      - name: Send digest
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          NTFY_TOPIC:   ${{ secrets.NTFY_TOPIC }}
+          # 以下兩個只有自架 ntfy 或 topic 有設存取控制時才需要
+          NTFY_SERVER:  ${{ secrets.NTFY_SERVER }}
+          NTFY_TOKEN:   ${{ secrets.NTFY_TOKEN }}
+        run: python scripts/send_digest.py
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: error-logs
+          path: "*.log"
+          retention-days: 7

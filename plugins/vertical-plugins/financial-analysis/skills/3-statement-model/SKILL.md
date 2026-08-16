@@ -166,9 +166,11 @@ Use a scenario toggle (dropdown) in the Assumptions tab with CHOOSE or INDEX/MAT
 
 **Scenario Audit Checks**: Toggle switches all statements, BS balances in all scenarios, Cash ties out, Hierarchy holds (Upside > Base > Downside for NI, EBITDA, FCF, margins).
 
-## SEC Filings Data Extraction
+## Filings Data Extraction
 
 If the template specifically requires pulling data from SEC filings (10-K, 10-Q), see [references/sec-filings.md](references/sec-filings.md) for detailed extraction guidance. This reference is only needed when populating templates with public company data from regulatory filings.
+
+For an ASX-listed company, use the `asx-filings` skill instead - the filings are Appendix 4E / 4D and the annual report rather than 10-K / 10-Q, the accounts are IFRS rather than US GAAP, and most ASX names report half-yearly, so a 4-quarter historical series cannot be built.
 
 ## Completing Model Templates
 
