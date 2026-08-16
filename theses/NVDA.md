@@ -51,12 +51,19 @@ exit_triggers:
     rule: "Gross margin falls more than 5pts in a single fiscal year, at any level"
     kind: alert
     rationale: "FY2023 fell 8pts in one year; a level-only rule fires too late"
+  - id: margin-alert
+    rule: "Gross margin falls below 70%"
+    kind: alert
+    status: confirmed
+    referent: "Floor of the AI era (FY2024-26 ran 71.1-75.0%)"
   - id: margin-level
     rule: "Gross margin falls below 65%"
     kind: exit
-    status: placeholder
+    status: confirmed
     referent: "64.9% was the pre-AI peak (FY2022)"
-    alternative: "70% - floor of the AI era, fires as an earlier warning"
+    note: "Owner-confirmed 2026-08-16. Company-specific - do NOT reuse this level
+      for another name. Across the peer set 70% would put AVGO, AMD, MRVL and INTC
+      in permanent breach; derive each threshold from that company's own history."
   - id: taiwan
     rule: "Taiwan Strait risk materialises - reassess immediately, do not wait for a scheduled review"
     kind: escalate
@@ -166,16 +173,26 @@ Position sizing has not been supplied, so true exposure is unquantified.
 2. Gross margin **falls more than 5pts in a single fiscal year** - review
    regardless of the absolute level. FY2023 fell 8pts from 64.9% to 56.9% in one
    year; a level-only rule would not have fired until the damage was done.
-3. Gross margin falls below **65%** *(placeholder - owner to confirm)*. The
-   number has a referent - 64.9% was the pre-AI peak, so breaching it means the
-   AI-era pricing premium is fully gone - but it tolerates 6pts of compression
-   from here, which is a large drawdown to sit through. A tighter **70%** is the
-   floor of the AI era and would fire as an early warning instead.
-4. Taiwan Strait risk materialises - reassess immediately, do not wait for a
+3. Gross margin falls below **70%** - alert only. This is the floor of the AI
+   era; breaching it means the premium is loosening, and the job is to find out
+   why (mix, competition, a one-off) rather than to act.
+4. Gross margin falls below **65%** - exit. 64.9% was the pre-AI peak, so
+   breaching it means the AI-era pricing premium is fully gone and pillar 3 has
+   failed. Owner-confirmed 2026-08-16.
+5. Taiwan Strait risk materialises - reassess immediately, do not wait for a
    scheduled review
 
-A single threshold cannot serve as both an alert and an exit. Trigger 2 is the
-early signal, trigger 3 the exit; the owner sets where each sits.
+A single threshold cannot serve as both an alert and an exit, which is what made
+an isolated 65% feel arbitrary. Triggers 2 and 3 are the early signals; trigger 4
+is the exit.
+
+**These levels are specific to NVIDIA and must not be reused.** Gross margin is a
+function of business model, and the peer set spans 34.8% (Intel, which owns its
+fabs) to 97.5% (Arm, which licenses IP). Applying NVIDIA's 70% across the
+watchlist would put Broadcom, AMD, Marvell and Intel in permanent breach -
+Broadcom's best year ever was 68.9%. Derive every threshold from that company's
+own filed history: its normal band, and the level it fell to when its business
+last broke.
 
 ## Update log
 
