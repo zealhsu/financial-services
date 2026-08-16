@@ -65,8 +65,16 @@ risks:
     severity: critical
   - id: custom-silicon
     claim: "Customers displace NVIDIA with in-house accelerators"
-    note: "Google TPU, Amazon Trainium; watch disclosed share of internal workloads"
+    note: "Google TPU, Amazon Trainium. Sharpened by concentration: the largest
+      direct customer went from 13% of revenue in FY2024 to 22% in FY2026, and
+      the hyperscalers most able to buy at that scale are the same ones building
+      their own silicon."
     severity: high
+    concentration:
+      largest_direct_customer: {FY2024: 0.13, FY2025: 0.12, FY2026: 0.22}
+      top_two_FY2026: 0.36
+      receivables_top_three: {2026-01-25: 0.56, 2025-01-26: 0.33}
+      source: "FY2026 10-K, narrative disclosure - not XBRL-tagged" 
   - id: capex-cycle
     claim: "AI capital expenditure cycle peaks"
     note: "Would hit volume and pricing together"
@@ -226,6 +234,33 @@ stating precisely because it is the one risk in this position that is both
 plausible and unhedgeable by diversifying within semiconductors - every peer in
 the comp set depends on the same fabs.
 
+### Customer concentration, read from the FY2026 10-K
+
+Not XBRL-tagged, so this had to come from the filing text.
+
+| Share of total revenue | FY2024 | FY2025 | FY2026 |
+|---|---|---|---|
+| Largest direct customer | 13% | 12% | **22%** |
+| Second largest | - | 11% | 14% |
+| Top two combined | - | ~23% | **36%** |
+
+Receivables concentrate harder still: three direct customers were 25%, 18% and
+13% of the balance at 25 Jan 2026 - **56% between them** - against two customers
+at 17% and 16% a year earlier.
+
+This materially sharpens risk 2 rather than sitting beside it. A single customer
+at 22% of revenue is a different exposure from one at 13%, and the buyers able
+to purchase at that scale are the same hyperscalers developing their own
+accelerators. The concentration and the substitution risk are the same risk seen
+twice.
+
+Two further points from the same disclosure. NVIDIA states that an unnamed "AI
+research and deployment company" contributed a meaningful amount of revenue by
+buying cloud services *through* its customers - an indirect exposure that does
+not appear in the direct-customer table at all. And revenue from outside the
+United States fell from 41% to 31% of the total, so the customer base is
+concentrating geographically at the same time.
+
 ## Valuation anchor
 
 LTM basis, as of each company's most recent filed quarter. Prices are delayed
@@ -248,11 +283,25 @@ way to produce one.
 
 ## Portfolio context
 
-The owner also holds SMH, QQQ, AIQ and BOTZ. NVIDIA is roughly 20.8% of SMH,
-9.6% of BOTZ and 8.8% of QQQ, so the effective position is larger than the
-direct holding. SMH in particular is about 48% NVDA + TSM + AVGO + AMD + MU -
-all five held individually as well, so it concentrates rather than diversifies
-this position.
+The owner also holds SMH, QQQ, AIQ and BOTZ, so the effective position is larger
+than the direct holding.
+
+| ETF | NVDA weight | Source |
+|---|---|---|
+| SMH | ~20.8% | Estimated - issuer site blocks automated access |
+| BOTZ | **9.371%** | Global X, first-hand |
+| QQQ | ~8.8% | Estimated - not yet pulled first-hand |
+| AIQ | **2.946%** | Global X, first-hand |
+
+SMH is about 48% NVDA + TSM + AVGO + AMD + MU - all five held individually as
+well, so it concentrates rather than diversifies this position. AIQ at 2.9%
+across 93 holdings is the only one of the four genuinely diversifying away from
+it.
+
+The two first-hand figures came in close to the earlier search-sourced
+estimates, but the same check found a search result had Broadcom's peer ABB as
+BOTZ's largest holding when it is actually Keyence at 10.8%. SMH and QQQ stay
+flagged as estimates until pulled from the issuer.
 
 Position sizing has not been supplied, so true exposure is unquantified.
 
@@ -290,6 +339,8 @@ last broke.
 | 2026-08-16 | Thesis opened. FY2026 revenue $215.9B (+65.5%), gross margin 71.1%. LTM revenue $253.5B as of Q1 FY2027. | 3 | Establishes baseline | None | Medium |
 | 2026-08-16 | Pillar 1 measured for the first time: combined hyperscaler capex $357.5B in 2025 against $217.3B in 2024, +64.5%. | 1 | Confirms - moves from unverified to on-track | None | Medium |
 | 2026-08-16 | Margin thresholds confirmed by owner at 70% alert / 65% exit. | 3 | No change to status | None | Medium |
+| 2026-08-16 | Customer concentration read from the FY2026 10-K: largest direct customer 22% of revenue against 13% two years earlier; top two 36%; three customers 56% of receivables. | Risk 2 | **Weakens** - concentration and custom-silicon substitution are the same exposure | None | Medium |
+| 2026-08-16 | ETF weights pulled first-hand where possible: BOTZ 9.371%, AIQ 2.946%. SMH and QQQ still estimated. | - | Refines portfolio context | None | Medium |
 | 2026-08-16 | Leading indicators added. Inventory days roughly doubled (78.0 to 114.7) and purchase-obligation growth decelerated from +35% to +5%. Neither breaches a trigger; both are logged as watch. | 3 | Disconfirming evidence, does not yet weaken the pillar | None | Medium |
 
 ## Open items
@@ -298,7 +349,9 @@ last broke.
 - [x] Measure pillar 1 - combined hyperscaler capex, +64.5%
 - [ ] Measure pillar 2: find a citable source for training-silicon share. No free
       authoritative source exists; this is the one gap that needs paid data
-- [ ] Read the 10-K for customer concentration - narrative only, not XBRL-tagged
+- [x] Read the 10-K for customer concentration - done, and it worsened risk 2
+- [ ] Pull SMH and QQQ weights first-hand; VanEck blocks automated access, so
+      this needs a manual export or a different route
 - [ ] Check whether a filing after Jul 2025 restores the PurchaseObligation tag
 - [ ] Write a variant view. The thesis as stated is consensus, so it carries no
       edge - decide whether that is acceptable or the position should be an
