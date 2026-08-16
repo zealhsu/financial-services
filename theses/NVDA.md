@@ -13,8 +13,15 @@ pillars:
   - id: hyperscaler-capex
     claim: "Hyperscaler capital expenditure keeps growing"
     test: "Combined MSFT / GOOGL / AMZN / META capex rises year over year"
-    status: unverified
-    trend: unknown
+    status: on-track
+    trend: rising
+    latest: 357.5e9
+    latest_period: "2025 (rolling - fiscal years differ)"
+    prior: 217.3e9
+    measured: 2026-08-16
+    note: "+64.5% YoY. Microsoft's fiscal year ends June while the others end
+      December, so the combined figure is a rolling mix - good as a trend signal,
+      not a precise total." 
   - id: training-share
     claim: "NVIDIA holds its lead in training silicon on the CUDA moat"
     test: "No competitor takes durable double-digit share of training workloads"
@@ -30,6 +37,27 @@ pillars:
     prior: 0.750
     prior_period: FY2025
     history_note: "19 years of 10-K history: low 34.3% (FY2009), median 56.9%, high 75.0% (FY2025). Pre-AI peak was 64.9% (FY2022)."
+leading_indicators:
+  - id: inventory-days
+    claim: "Inventory builds ahead of a demand turn"
+    latest: 114.7
+    unit: days
+    latest_period: 2026-04-26
+    prior: 78.0
+    prior_period: 2024-10-27
+    status: watch
+    note: "Nearly doubled. Consistent with building for a product ramp while
+      revenue still grows 65%, but this is the series that shows a demand turn
+      before gross margin does."
+  - id: purchase-obligations
+    claim: "NVIDIA's own committed spend with its supply chain"
+    latest: 45.77e9
+    latest_period: 2025-07-27
+    status: watch
+    stale: true
+    note: "Growth decelerated from +35% to mid single digits. Not tagged in
+      filings after 2025-07, so the series is stale - re-check whether a later
+      filing restores the tag."
 risks:
   - id: taiwan
     claim: "Taiwan Strait conflict or blockade"
@@ -76,10 +104,10 @@ exit_triggers:
 > 2026-08-16. The pillars, tests and valuation anchors were derived by Claude
 > from SEC filings.
 >
-> Two of the three pillars are still unmeasured, there is no forward estimate
-> anywhere in this file, and no target price has been modelled. It is a
-> discipline for tracking whether a position's reasons still hold - not a
-> complete investment process.
+> One of three pillars is still unmeasured, there is no forward estimate or
+> consensus figure anywhere in this file, and no target price has been modelled.
+> It is a discipline for tracking whether a position's reasons still hold - not
+> a complete investment process.
 >
 > **This is analyst work product, not investment advice.**
 
@@ -98,12 +126,26 @@ and still lost 80%.
 
 | # | Pillar | How it gets tested | Status |
 |---|---|---|---|
-| 1 | Hyperscaler capex keeps growing | Combined MSFT / GOOGL / AMZN / META capex, year over year | Unverified |
+| 1 | Hyperscaler capex keeps growing | Combined MSFT / GOOGL / AMZN / META capex, year over year | **On track** - $357.5B, +64.5% |
 | 2 | NVIDIA holds training-silicon lead | No competitor takes durable double-digit training share | Unverified |
 | 3 | Gross margin holds >= 70% | Reported gross margin each quarter | On track - 71.1% (FY2026), **declining** |
 
-Pillars 1 and 2 are marked unverified because neither has been measured yet.
-Filling them in is the first job of the next review, not something to assume.
+### Pillar 1, measured 2026-08-16
+
+| | 2024 | 2025 |
+|---|---|---|
+| Microsoft | $44.5B | $115.9B |
+| Amazon | $83.0B | $131.8B |
+| Alphabet | $52.5B | $91.4B |
+| Meta | $37.3B | $69.7B |
+| **Combined** | **$217.3B** | **$357.5B (+64.5%)** |
+
+Capex from each company's cash flow statement. Microsoft's fiscal year ends in
+June while the other three end in December, so the combined figure is a rolling
+mix - sound as a trend signal, not a precise total.
+
+Pillar 2 stays unverified. Training-silicon share has no free authoritative
+source, and guessing it would be worse than leaving the gap visible.
 
 ### Pillar 3 in historical context
 
@@ -128,6 +170,48 @@ happened in one year. Any threshold set on the absolute level alone will
 therefore trigger late - by the time the level confirms the damage, the change
 has already happened. That is why the exit triggers below carry a
 rate-of-change rule as well as a level.
+
+## Leading indicators
+
+Gross margin is an output. Whatever moves it moved several quarters earlier, so
+pillar 3 confirms a change rather than warning of one. These two run ahead of it
+and are pulled from the same filings by `data/leading_indicators.py`.
+
+**Inventory days** - inventory over daily cost of revenue:
+
+| | Inventory | Days |
+|---|---|---|
+| Oct 2024 | $7.65B | 78.0 |
+| Apr 2025 | $11.33B | 59.3 |
+| Jul 2025 | $14.96B | 105.6 |
+| Oct 2025 | $19.78B | 118.8 |
+| Apr 2026 | $25.80B | 114.7 |
+
+Inventory is up close to four times in fifteen months and days on hand have
+roughly doubled. Two readings fit: building ahead of a product ramp, which is
+consistent with revenue still growing 65%, or demand softening while supply
+keeps arriving. The first is more likely today. The point of tracking it is that
+**this series distinguishes them before gross margin does** - if revenue growth
+decelerates while days keep climbing, the second reading is the right one.
+
+**Purchase obligations** - what NVIDIA has committed to buy from its supply
+chain, and so its own bet on future demand:
+
+| As of | Committed | Change |
+|---|---|---|
+| Jul 2024 | $39.78B | +35% |
+| Oct 2024 | $42.04B | +6% |
+| Jan 2025 | $45.08B | +7% |
+| Apr 2025 | $43.52B | -3% |
+| Jul 2025 | $45.77B | +5% |
+
+Growth decelerated from +35% to mid single digits. **The series is stale** - the
+tag stops appearing after July 2025, so this is not a current reading and the
+next review should check whether a later filing restores it.
+
+Customer concentration belongs in this section and is missing. NVIDIA discloses
+it as narrative text rather than tagging it, so it cannot be pulled from the
+XBRL API and needs the filing read directly.
 
 ## Risks
 
@@ -204,11 +288,20 @@ last broke.
 | Date | Development | Pillar affected | Impact | Action | Conviction |
 |---|---|---|---|---|---|
 | 2026-08-16 | Thesis opened. FY2026 revenue $215.9B (+65.5%), gross margin 71.1%. LTM revenue $253.5B as of Q1 FY2027. | 3 | Establishes baseline | None | Medium |
+| 2026-08-16 | Pillar 1 measured for the first time: combined hyperscaler capex $357.5B in 2025 against $217.3B in 2024, +64.5%. | 1 | Confirms - moves from unverified to on-track | None | Medium |
+| 2026-08-16 | Margin thresholds confirmed by owner at 70% alert / 65% exit. | 3 | No change to status | None | Medium |
+| 2026-08-16 | Leading indicators added. Inventory days roughly doubled (78.0 to 114.7) and purchase-obligation growth decelerated from +35% to +5%. Neither breaches a trigger; both are logged as watch. | 3 | Disconfirming evidence, does not yet weaken the pillar | None | Medium |
 
 ## Open items
 
-- [ ] Owner to confirm or replace the 65% gross-margin exit trigger
-- [ ] Measure pillar 1: pull hyperscaler capex from MSFT / GOOGL / AMZN / META filings
-- [ ] Measure pillar 2: find a citable source for training-silicon share
+- [x] Owner to confirm the gross-margin triggers - set at 70% alert / 65% exit
+- [x] Measure pillar 1 - combined hyperscaler capex, +64.5%
+- [ ] Measure pillar 2: find a citable source for training-silicon share. No free
+      authoritative source exists; this is the one gap that needs paid data
+- [ ] Read the 10-K for customer concentration - narrative only, not XBRL-tagged
+- [ ] Check whether a filing after Jul 2025 restores the PurchaseObligation tag
+- [ ] Write a variant view. The thesis as stated is consensus, so it carries no
+      edge - decide whether that is acceptable or the position should be an
+      index instead
 - [ ] Supply position sizes so portfolio exposure can be quantified
 - [ ] Run `/dcf NVDA` to derive a target price rather than leaving it unset
