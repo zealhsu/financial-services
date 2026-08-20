@@ -79,6 +79,36 @@ risks:
     claim: "AI capital expenditure cycle peaks"
     note: "Would hit volume and pricing together"
     severity: high
+  - id: inference-price-competition
+    claim: "Routing layers commoditise model choice and compress what buyers
+      will pay for inference"
+    note: "The bull case reads AI infrastructure spend as one number going up.
+      This is the part that could go up in volume while going down in price. A
+      layer whose product is spending less on inference, priced at what a router
+      just fetched, is the market saying it expects price competition among
+      model providers to be worth arbitrating. Compressed model pricing feeds
+      back into willingness to pay for the most expensive silicon - the same
+      direction as custom-silicon, by a different mechanism."
+    severity: medium
+    evidence:
+      - date: 2026-08-19
+        event: "Stripe agreed to acquire OpenRouter - officially announced with
+          no terms disclosed; media reported over $7bn, one source about $7.5bn.
+          OpenRouter raised a Series B in May 2026 at a reported $1.3bn, so
+          roughly a 5x move in three months. It routes across 400+ models from
+          80+ providers."
+        reading: "Not directly investable - both private. Counts as evidence
+          because the price is a market statement about how much inference spend
+          there is to arbitrate, and about the expected spread between models."
+        counterpoint: "Routing is not hard to build. AWS Bedrock and Vertex have
+          it natively, so the moat may be distribution rather than technology -
+          in which case the price says more about Stripe than about the layer."
+        source: "https://stripe.com/newsroom/news/stripe-agrees-to-acquire-openrouter"
+    unmeasured: true
+    note_on_measurement: >
+      There is no free authoritative series for inference pricing, so this risk
+      stays qualitative and human-read. Do not let weekly_check report it as
+      on-track - absence of a metric is not absence of the risk.
 # `metric` / `op` / `threshold` make a rule executable. weekly_check.py
 # evaluates only triggers carrying all three; the rest stay prose for a human,
 # and the script reports them as unevaluated rather than silently ignoring them.
