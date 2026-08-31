@@ -40,15 +40,16 @@ pillars:
 leading_indicators:
   - id: inventory-days
     claim: "Inventory builds ahead of a demand turn"
-    latest: 114.7
+    latest: 119.3
     unit: days
-    latest_period: 2026-04-26
-    prior: 78.0
+    latest_period: 2026-07-26
+    prior: 114.7
     prior_period: 2024-10-27
     status: watch
     note: "Nearly doubled. Consistent with building for a product ramp while
       revenue still grows 65%, but this is the series that shows a demand turn
       before gross margin does."
+    measured: 2026-08-31
   - id: purchase-obligations
     claim: "NVIDIA's own committed spend with its supply chain"
     latest: 45.77e9
@@ -377,6 +378,12 @@ own filed history: its normal band, and the level it fell to when its business
 last broke.
 
 ## Update log
+
+### 2026-08-31 - automated check
+
+- `inventory-days` 114.7 -> 119.3 (as of 2026-07-26)
+- Not evaluated, needs a human: pillar-deterioration, taiwan.
+
 
 | Date | Development | Pillar affected | Impact | Action | Conviction |
 |---|---|---|---|---|---|
