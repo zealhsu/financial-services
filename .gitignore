@@ -52,3 +52,6 @@ MEMORY.md
 theses/data/cf_*.json
 theses/data/raw.json
 theses/data/ltm.json
+
+# screen.py default output - regenerated each run
+theses/data/screen.json
