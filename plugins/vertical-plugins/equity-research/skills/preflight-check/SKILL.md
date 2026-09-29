@@ -43,6 +43,24 @@ limits.
 
 Each must be answered. An unanswered gate is a failed gate.
 
+### 0. Cash buckets
+
+Before any question about the security, read `rules.cash_buckets` and ask where
+the money is coming from.
+
+- **Tax.** If the owner is a contractor and `tax.set_aside_pct_of_gross` is
+  unset, say so. Money owed to the ATO is not investable, however it feels.
+- **Emergency fund.** Compare `emergency.current_aud` to `emergency.target_aud`,
+  and ask whether the figure is still current.
+- **What the rule permits.** A monthly ETF contribution within
+  `monthly_allocation` passes. A single-stock purchase before
+  `invest.single_stocks_allowed_when` is met fails this gate - record it as a
+  paper trade with date and price instead, which costs nothing and still
+  builds the track record.
+
+This gate uses the owner's own numbers. It is not a judgement about the stock,
+and it does not bend because the stock is compelling.
+
 ### 1. One sentence
 
 > State why you are buying this, in one sentence, without the words "AI",

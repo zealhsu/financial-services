@@ -17,11 +17,56 @@ owner:
   residency_status: temporary_resident   # temporary visa, not PR - see rules.tax
   departure_expected: 2029-06            # ~2y9m from 2026-09-29; confirm exact visa end date
   visa_subclass: unknown                 # matters: 417/462 (working holiday) changes super exit tax to 65%
+  employment: abn_contractor             # no PAYG withheld by clients - see rules.cash_buckets.tax
+  super_balance: none                    # had one previously; none now per owner 2026-09-29
+  monthly_essential_expenses_aud: 3000
+  monthly_investable_aud: 1000           # minimum, after the tax set-aside
   broker: CommSec
   positions_held: none          # as of 2026-08-16 - nothing bought yet
   experience: beginner
 
 rules:
+
+  # Where each dollar goes before any of it reaches a stock. Preflight reads this
+  # as gate 0: a purchase that would come out of the tax or emergency money is
+  # not an investment decision, it is a cash-flow mistake.
+  cash_buckets:
+    as_of: 2026-09-29
+    tax:
+      # An ABN contractor has no tax withheld at source. The bill arrives once,
+      # at the end of the year, and is the most common way contractors get hurt.
+      set_aside_pct_of_gross: null      # owner to confirm with an accountant; 25-30% is a common range
+      gst_registration_threshold_aud: 75000
+      gst_note: >
+        Above A$75,000 annual turnover, GST registration is required and 1/11 of
+        every GST-inclusive receipt belongs to the ATO. It is not income.
+      where: separate high-interest savings account, so it earns until paid
+    emergency:
+      target_months: 6
+      target_aud: 18000                 # 6 x monthly_essential_expenses_aud
+      current_aud: 3000                 # owner reports one month saved, 2026-09-29
+      rationale: >
+        Six months rather than three: contractor income is irregular, most
+        temporary visa holders cannot draw Centrelink, and an urgent flight home
+        is a realistic cost. The balance becomes the relocation fund at
+        departure, so it is pre-funding the move rather than sitting idle.
+      where: high-interest savings account, government-guaranteed to A$250,000 per bank
+    monthly_allocation:
+      # Applied to monthly_investable_aud, which is already net of tax set-aside.
+      - {emergency_below_months: 1, to_emergency_pct: 100, to_invest_pct: 0}
+      - {emergency_below_months: 6, to_emergency_pct: 70,  to_invest_pct: 30}
+      - {emergency_below_months: null, to_emergency_pct: 0, to_invest_pct: 100}
+    invest:
+      vehicle: one broad ASX-listed, Australian-domiciled index ETF, bought monthly
+      single_stocks_allowed_when: emergency at target_aud AND a 5% position clears fees
+      note: >
+        Single stocks wait. At A$1,000 a month, a 5% single-name position is
+        tens of dollars and brokerage eats a meaningful share of it. IPG and any
+        other candidate run through preflight as a paper trade, recorded with the
+        date and price, until the rule above is met.
+    departure:
+      decide_by: 2028-12                # about six months before departure_expected
+      note: see rules.tax.departure_plan
 
   position_sizing:
     # A good thesis at a large weight is still a risk-management failure. These
