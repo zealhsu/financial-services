@@ -28,6 +28,17 @@
 | 2025 | CrowdStrike | Pangea | 約 $2.6 億（媒體報導） |
 | 2024 | Cisco | Robust Intelligence | 未查證金額 |
 
+### 大型募資：控制「人和 AI 在哪裡操作」
+
+| 日期 | 公司 | 管的是什麼 | 金額與估值 |
+|---|---|---|---|
+| 2026-09-24 | **Island** | 企業瀏覽器，在人和 AI agent 實際操作的地方做控管 | F 輪 $4 億，估值 **$64 億**；Evolution Equity Partners 領投，Sequoia、Coatue、Insight、J.P. Morgan 參與 |
+
+- 估值從 2025 年 3 月 E 輪的 $48 億，升到 $64 億，約一年半升 33%
+- 「ARR 每年翻倍」是公司自己的說法，沒有公開數字可以驗證
+- 累計融資額：新聞稿寫「遠超過 $10 億」，部分轉述寫「突破 $9 億」，以新聞稿為準
+- 不確定這輪有沒有算進下面那個 $4.35 億的統計，所以分開列
+
 ### 新創募資：2026 年 4 到 9 月，12 輪共 $4.35 億
 
 | 公司 | 金額 | 輪次與領投 |
@@ -42,7 +53,7 @@
 
 ## 二、這些數字說明什麼
 
-**1. 資本最願意付錢的，是「AI 能碰什麼」，不是「AI 說了什麼」。** 管身分與權限的 CyberArk，和管可見度的 Wiz，各值幾百億。檢查 prompt、擋 AI 被操弄的新創，一家只值幾億。
+**1. 資本最願意付錢的，是「AI 能碰什麼」，不是「AI 說了什麼」。** 管身分與權限的 CyberArk，和管可見度的 Wiz，各值幾百億。檢查 prompt、擋 AI 被操弄的新創，一家只值幾億。Island 的 $64 億也在同一邊：它管的不是 AI 的輸出，而是 AI 在哪裡操作、能碰到哪些資料。
 
 **2. 純「管 AI」的公司幾乎都沒上市，而且很快被大平台買走。** 對上市股投資人來說，這個主題沒有純度高的標的。Palo Alto 花約 $5 億買 Protect AI，只佔它約 $3,200 億市值的 0.2%。
 
@@ -89,6 +100,9 @@
 
 ## 五、來源
 
+- [Island Announces $400 Million Series F — Island](https://www.island.io/press/island-announces-400-million-series-f-bringing-valuation-to-6-4-billion)
+- [Island raises $400M at $6.4B valuation — SiliconANGLE](https://siliconangle.com/2026/09/24/enterprise-browser-developer-island-raises-400m-at-6-4b-valuation/)
+- [Island Raises $400 Million at $6.4 Billion Valuation — SecurityWeek](https://www.securityweek.com/island-raises-400-million-at-6-4-billion-valuation/)
 - [Google completes $32B acquisition of Wiz — TechCrunch](https://techcrunch.com/2026/03/11/google-completes-32b-acquisition-of-wiz/)
 - [Palo Alto Networks Completes Acquisition of CyberArk — Palo Alto Networks](https://www.paloaltonetworks.com/company/press/2026/palo-alto-networks-completes-acquisition-of-cyberark-to-secure-the-ai-era)
 - [CrowdStrike Buys Pangea for $260M — BankInfoSecurity](https://www.bankinfosecurity.com/crowdstrike-buys-pangea-for-260m-to-guard-enterprise-ai-use-a-29480)
