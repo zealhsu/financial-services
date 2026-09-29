@@ -104,7 +104,11 @@ is not.
 20% USD gain is zero in AUD if the Australian dollar rises 20%. Record the rate
 at entry; report returns in the base currency.
 
-**Holding period and tax.** Ask the intended holding period. If under 12 months,
+**Holding period and tax.** Read `rules.tax.residency_status` first. For a
+temporary resident, gains on portfolio shares are generally disregarded, so the
+holding-period warning below does not apply - instead check the horizon against
+`owner.departure_expected`, since a position still open at departure has to be
+sold or moved. For anyone else: ask the intended holding period. If under 12 months,
 note that Australian individuals may lose a 50% CGT discount available beyond
 that point, and that this is worth confirming with an accountant rather than
 taking from here.

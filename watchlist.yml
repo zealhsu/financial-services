@@ -14,6 +14,9 @@
 owner:
   base_currency: AUD
   tax_residency: AU
+  residency_status: temporary_resident   # temporary visa, not PR - see rules.tax
+  departure_expected: 2029-06            # ~2y9m from 2026-09-29; confirm exact visa end date
+  visa_subclass: unknown                 # matters: 417/462 (working holiday) changes super exit tax to 65%
   broker: CommSec
   positions_held: none          # as of 2026-08-16 - nothing bought yet
   experience: beginner
@@ -55,13 +58,47 @@ rules:
 
   tax:
     # Not tax advice. Confirm with an Australian accountant before relying on it.
-    cgt_discount_min_holding_days: 365
-    note: >
-      Australian individuals may receive a 50% CGT discount on assets held longer
-      than 12 months. Selling at month 11 rather than month 13 can therefore cost
-      materially more after tax on the same gross gain. This interacts directly
-      with a thesis-driven horizon: an exit trigger firing near the 12-month mark
-      deserves the tax cost stated explicitly rather than discovered later.
+    #
+    # Rewritten 2026-09-29 when the owner's temporary-visa status became known.
+    # The earlier version assumed a permanent resident and was wrong on three
+    # counts: the 12-month CGT discount, the value of super, and portability.
+    residency_status: temporary_resident
+    cgt_on_portfolio_shares: disregarded
+    cgt_note: >
+      A temporary resident is taxed on capital gains only from taxable Australian
+      property (real estate, and interests of 10% or more in land-rich entities).
+      Section 768-915 ITAA 1997 disregards gains and losses on everything else, so
+      selling directly held ASX or US shares is generally CGT-free while the owner
+      keeps temporary-resident status. The 12-month holding period therefore does
+      not matter for tax, and the 50% discount is not available anyway to someone
+      who was a temporary or foreign resident for the whole holding period.
+    cgt_discount_min_holding_days: null   # not applicable - see cgt_note
+    etf_trust_trap: >
+      The exemption does not look through a trust. An Australian ETF is a unit
+      trust, and capital gains the fund realises and distributes each year are
+      taxable in the owner's hands. Selling the ETF units themselves is still
+      disregarded. For an index ETF the distributed gains are usually small, and
+      at a few thousand dollars the difference is tens of dollars - but it means
+      direct shares, not ETFs, carry the cleaner tax treatment here.
+    dividends: >
+      Australian dividends are still assessable at marginal rates, with franking
+      credits available while the owner is an Australian tax resident.
+    super: >
+      Do not make voluntary contributions. Super paid out on permanent departure
+      (DASP) is taxed at 35% on the taxed element for most temporary visa holders,
+      and 65% if the owner has ever held a working holiday visa (417/462) with
+      contributions from that period. Money in at 15% and out at 35-65% loses to
+      investing outside super. Employer contributions still accrue and are
+      claimed via DASP after leaving; unclaimed balances pass to the ATO and
+      remain claimable from there.
+    departure_plan: >
+      CommSec requires the account to be closed when the address moves overseas.
+      ASX holdings are converted to issuer-sponsored and remain owned; the
+      International Shares Account cannot be held as a non-resident. Because
+      gains are disregarded while a temporary resident, selling before departure
+      costs no Australian CGT - which makes a clean exit cheap. Decide about six
+      months before departure: sell, or move to a broker that serves the
+      destination country. Update the W-8BEN when residency changes.
     us_dividend_withholding: >
       Under Article 10 of the Australia-US treaty, withholding on US dividends to
       an Australian resident portfolio investor is generally capped at 15% rather
